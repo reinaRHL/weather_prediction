@@ -1,3 +1,8 @@
+####################################################
+# Author: Hwayoung(reina) Lee
+# CMPT 318 Final Project
+####################################################
+
 import pandas as pd
 import numpy as np
 import sys
@@ -25,9 +30,12 @@ def simplify_cat(weather):
 
 def main():
 
-    # reading multiple files in the same folder. 
-    #Code is from https://stackoverflow.com/questions/39568925/python-read-files-from-directory-and-concatenate-that
-    path ='/yvr-weather' # use your path
+    ####################################################
+    ############## READ INPUT FILE #####################
+    ####################################################
+    # Reading multiple files in the same folder. 
+    # Code is from https://stackoverflow.com/questions/39568925/python-read-files-from-directory-and-concatenate-that
+    path ='/yvr-weather'
     allFiles = glob.glob(abspath(getcwd())+ path + "/*.csv")
     frame = pd.DataFrame()
     list_ = []
@@ -36,9 +44,28 @@ def main():
         list_.append(df)
     frame = pd.concat(list_, ignore_index=True)
     
-    frame = frame[frame['Weather'].notnull()]
-    frame['simple cat'] = frame['Weather'].apply(simplify_cat)  
-    print (frame.groupby(['simple cat'])['Temp (°C)'].mean())
+    ####################################################
+    ############## Cleaning Data   #####################
+    ####################################################
+    # Extract meaningful columns
+    columns = ['Date/Time', 'Year', 'Month', 'Day', 'Temp (°C)', 'Weather']
+    weather_df = pd.DataFrame(frame, columns=columns)
+    
+    # Remove row whose weather column is 'nan'
+    weather_df = weather_df[weather_df['Weather'].notnull()]
+
+    # Simplify the category. For example, 'moderate rain' to 'rain'
+    weather_df['simple cat'] = weather_df['Weather'].apply(simplify_cat)
+    
+    # Again, keep only meaningful columns
+    columns = ['Date/Time', 'Year', 'Month', 'Day', 'Temp (°C)', 'simple cat']
+    weather_df = pd.DataFrame(weather_df, columns=columns)  
+    
+
+    print (weather_df.groupby(['simple cat'])['Temp (°C)'].mean())
+    print (weather_df)
+
+
 
 
 if __name__=='__main__':
