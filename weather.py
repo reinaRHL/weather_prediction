@@ -3,6 +3,7 @@
 # CMPT 318 Final Project
 ####################################################
 
+from timeit import default_timer as timer
 import pandas as pd
 import numpy as np
 import sys
@@ -10,10 +11,12 @@ import gzip
 import math as Math
 import matplotlib.pyplot as plt
 from datetime import datetime as dt
-from scipy import stats
+from scipy import stats, misc
 import glob
+import os
 from os import getcwd
 from os.path import join, abspath
+import csv
 
 def simplify_cat(weather):
     #simplify (clean) category
@@ -28,8 +31,18 @@ def simplify_cat(weather):
     weather = weather.replace('Snow Pellets','Ice Pellets')
     return weather
 
-def main():
+# Extract date (YYYYmmDD-HH) from the filepath
+def getDate(filepath):
+    date = os.path.basename(filepath)
+    date = os.path.splitext(date)[0]
+    date_without_pre = date.lstrip("katkam-")
+    date_without_zeros = date_without_pre[:-4]
+    date_final = date_without_zeros[0:4] + '-' + date_without_zeros[4:6] + '-' + date_without_zeros[6:8] + ' '+ date_without_zeros[8:10]+ ":00"
+    return date_final
 
+
+def main():
+    start = timer()
     ####################################################
     ############## READ INPUT FILE #####################
     ####################################################
@@ -44,6 +57,27 @@ def main():
         list_.append(df)
     frame = pd.concat(list_, ignore_index=True)
     
+    path ='/katkam-scaled'
+    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    list1_ = []
+    list2_ = []
+    image_date = pd.DataFrame()
+    print ("Reading image file...")
+    for file_ in allFiles:
+        list1_.append(os.path.basename(file_))
+        list2_.append(misc.imread(file_).reshape(-1))
+    print ("read image file...")
+    image_date= pd.DataFrame(list1_, columns=['Date/Time'])
+    image_date['Date/Time'] = image_date['Date/Time'].apply(getDate)
+    
+    # np.savetxt('test.csv', list2_, fmt='%i', delimiter=',')
+    # test_df = pd.read_csv('test.csv')
+    # print (test_df)
+    image_df = pd.DataFrame.from_records(list2_)
+    
+    image_df = pd.concat([image_date, image_df], axis=1)
+    image_df.set_index('Date/Time')
+
     ####################################################
     ############## Cleaning Data   #####################
     ####################################################
@@ -61,10 +95,12 @@ def main():
     columns = ['Date/Time', 'Year', 'Month', 'Day', 'Temp (°C)', 'simple cat']
     weather_df = pd.DataFrame(weather_df, columns=columns)  
     
-
-    print (weather_df.groupby(['simple cat'])['Temp (°C)'].mean())
+    weather_df = weather_df.merge(image_df, on='Date/Time')
     print (weather_df)
-
+    #print (weather_df.groupby(['simple cat'])['Temp (°C)'].mean())
+    #print (weather_df)
+    end = timer()
+    print (end-start)
 
 
 
