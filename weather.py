@@ -43,9 +43,12 @@ def getDate(filepath):
 
 def main():
     start = timer()
-    ####################################################
-    ############## READ INPUT FILE #####################
-    ####################################################
+
+
+    ##################################################################################
+    ############## READ INPUT FILE - weather data and image data #####################
+    ##################################################################################
+
     # Reading multiple files in the same folder. 
     # Code is from https://stackoverflow.com/questions/39568925/python-read-files-from-directory-and-concatenate-that
     path ='/yvr-weather'
@@ -67,38 +70,44 @@ def main():
         list1_.append(os.path.basename(file_))
         list2_.append(misc.imread(file_).reshape(-1))
     print ("read image file...")
+
+    #image_date contains 'Date/Time' info
     image_date= pd.DataFrame(list1_, columns=['Date/Time'])
     image_date['Date/Time'] = image_date['Date/Time'].apply(getDate)
-    
-    # np.savetxt('test.csv', list2_, fmt='%i', delimiter=',')
-    # test_df = pd.read_csv('test.csv')
-    # print (test_df)
+
+    # image_df contains image information read from input
     image_df = pd.DataFrame.from_records(list2_)
-    
+
+    # Combine Date/time columns and image data
+    # and set index as 'Date/Time' so that we can merge this df with weather data on this feature. 
     image_df = pd.concat([image_date, image_df], axis=1)
     image_df.set_index('Date/Time')
+
 
     ####################################################
     ############## Cleaning Data   #####################
     ####################################################
-    # Extract meaningful columns
+
+    # The input weather data is quite big. 
+    # So, extract meaningful columns
     columns = ['Date/Time', 'Year', 'Month', 'Day', 'Temp (°C)', 'Weather']
     weather_df = pd.DataFrame(frame, columns=columns)
     
-    # Remove row whose weather column is 'nan'
+    # Remove rows whose 'weather' description is 'nan'
     weather_df = weather_df[weather_df['Weather'].notnull()]
 
-    # Simplify the category. For example, 'moderate rain' to 'rain'
+    # Simplify the categories. For example, 'moderate rain' to 'rain'
     weather_df['simple cat'] = weather_df['Weather'].apply(simplify_cat)
     
     # Again, keep only meaningful columns
     columns = ['Date/Time', 'Year', 'Month', 'Day', 'Temp (°C)', 'simple cat']
     weather_df = pd.DataFrame(weather_df, columns=columns)  
     
+    # Merge image dataframe and weather data frame 
+    # It will keep rows that has matching data from both dataFrame    
     weather_df = weather_df.merge(image_df, on='Date/Time')
     print (weather_df)
-    #print (weather_df.groupby(['simple cat'])['Temp (°C)'].mean())
-    #print (weather_df)
+
     end = timer()
     print (end-start)
 
