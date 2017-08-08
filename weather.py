@@ -3,14 +3,11 @@
 # CMPT 318 Final Project
 ####################################################
 
-from timeit import default_timer as timer
 import pandas as pd
 import numpy as np
 import sys
 import gzip
-import math as Math
-import matplotlib.pyplot as plt
-from datetime import datetime as dt
+from timeit import default_timer as timer
 from scipy import stats, misc
 import glob
 import os
@@ -20,7 +17,7 @@ import csv
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import FunctionTransformer, StandardScaler, MultiLabelBinarizer
+from sklearn.preprocessing import StandardScaler, MultiLabelBinarizer
 from sklearn.svm import SVC
 from sklearn.multiclass import OneVsOneClassifier, OneVsRestClassifier
 from sklearn.svm import LinearSVC
@@ -49,8 +46,6 @@ def getDate(filepath):
 
 
 def main():
-    start = timer()
-
 
     ##################################################################################
     ############## READ INPUT FILE - weather data and image data #####################
@@ -73,11 +68,9 @@ def main():
     list1_ = []
     list2_ = []
     image_date = pd.DataFrame()
-    print ("Reading image file...")
     for file_ in allFiles:
         list1_.append(os.path.basename(file_))
         list2_.append(misc.imread(file_).reshape(-1))
-    print ("read image file...")
 
     # image_date contains 'Date/Time' info
     image_date= pd.DataFrame(list1_, columns=['Date/Time'])
@@ -124,7 +117,6 @@ def main():
     # Build a model
     # Multi label classification: 
     # Part of code is from https://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
-    print("model start")
     X = weather_df[weather_df.columns[6:147462]]
     y = weather_df['simple cat'].values
     mlb = MultiLabelBinarizer()
@@ -135,11 +127,9 @@ def main():
     model.fit(X_train, y_train)
     print (model.score(X_test, y_test))
 
-    print ("prediction start")
-
 
     ####################################################
-    ############## Verify Data   #######################
+    ############## Predict Sample input ################
     ####################################################
 
     # Predict weather using some test input
@@ -156,11 +146,10 @@ def main():
     # Part of code is from https://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
     predictions = model.predict(X_pre)
     origin_label = mlb.inverse_transform(predictions)
+    print ("\nWeather Label Prediction from the sample input:")
     print (origin_label)
     pd.Series(origin_label).to_csv("labels.csv", index=False)
 
-    end = timer()
-    print (end-start)
 
 
 

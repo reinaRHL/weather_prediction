@@ -150,7 +150,7 @@ def main():
     #knn_model_tide.fit(X_train, y_train)
     svc_model_tide.fit(X_train, y_train)
 
-    print ("Accuracy score for tide height prediction:")
+    print ("\nAccuracy score for tide height prediction:")
     # print ("Gaussian-")
     # print (gsModel_tide.score(X_test, y_test))
     # print ("KNN-")
@@ -178,7 +178,7 @@ def main():
     knn_model_time.fit(X_train, y_train)
     #svc_model_time.fit(X_train, y_train)
 
-    print ("Accuracy score for time prediction:")
+    print ("\nAccuracy score for time prediction:")
     # print ("Gaussian-")
     # print (gsModel_time.score(X_test, y_test))
     print (knn_model_time.score(X_test, y_test))
@@ -187,31 +187,27 @@ def main():
 
 
     # ####################################################
-    # ############## Verify Data   #######################
+    # ############## Sample input  #######################
     # ####################################################
 
-    # # Predict weather using some test input
-    # path ='/testing_img'
-    # allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
-    # list3_ = []
-    # for file_ in allFiles:
-    #     list3_.append(misc.imread(file_).reshape(-1))
+    # Predict tide and time using some test input
+    path ='/testing_img'
+    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    list3_ = []
+    for file_ in allFiles:
+        list3_.append(misc.imread(file_).reshape(-1))
 
-    # test_df = pd.DataFrame.from_records(list3_)
+    test_df = pd.DataFrame.from_records(list3_)
 
-    # X_pre = test_df[test_df.columns[0:147456]]
+    X_pre = test_df[test_df.columns[0:147456]]
 
+    predictions_tide = svc_model_tide.predict(X_pre)
+    print ("\nTide height prediction from the sample input:")
+    print (predictions_tide)
 
-    # predictions = gsModel.predict(X_pre)
-    # print ("gspredict")
-    # print (predictions)
-    # predictions = knn_model.predict(X_pre)
-    # print ("knn")
-    # print (predictions)
-    # predictions = svc_model.predict(X_pre)
-    # print ("svc")
-    # print (predictions)
-
+    print ("\nTime prediction from the sample input:")
+    predictions_time = knn_model_time.predict(X_pre)
+    print (predictions_time)
 
 
 if __name__=='__main__':
