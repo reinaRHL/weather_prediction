@@ -49,6 +49,8 @@ def main():
     ############## READ FILE and Clean Data - tide data and image data #####################
     ########################################################################################
     
+    # Reading multiple files in the same folder. 
+    # Code is from https://stackoverflow.com/questions/39568925/python-read-files-from-directory-and-concatenate-that
     path = sys.argv[1]
     allFiles = glob.glob(abspath(getcwd())+ '/' + path + "/*.csv")
     frame = pd.DataFrame()
@@ -58,14 +60,22 @@ def main():
         list_.append(df)
     frame = pd.concat(list_, ignore_index=True)
 
+    # clean the data
     frame = frame[frame['Weather'].notnull()]
+    
     columns = ['Date/Time', 'Year', 'Month', 'Day', 'Weather']
     weather_df = pd.DataFrame(frame, columns=columns)
+    
     weather_df['Date/Time'] = weather_df['Date/Time'].apply(getWeatherDate)
+    
+    # group by a certain col and concat string in another col
+    # from https://stackoverflow.com/questions/27298178/concatenate-strings-from-several-rows-using-pandas-groupby
     weather_df = weather_df.groupby(['Date/Time'])['Weather'].apply(lambda x: ','.join(x)).reset_index()
+    
     weather_df['Today'] = weather_df['Weather'].apply(isRained)
     weather_df['Tmr'] = weather_df['Today'].shift(-1)
     weather_df = weather_df[weather_df['Tmr'].notnull()]
+
     columns = ['Date/Time', 'Tmr']
     weather_df = pd.DataFrame(weather_df, columns=columns)
 
@@ -83,9 +93,16 @@ def main():
     image_date= pd.DataFrame(list1_, columns=['Date/Time'])
     image_date['Date/Time'] = image_date['Date/Time'].apply(getDate)
     image_date.set_index('Date/Time')
+    
     image_df = pd.DataFrame.from_records(list2_)
+
+    # Combine Date/time columns and image data
+    # and set index as 'Date/Time' so that we can merge this df with weather data on this feature. 
     image_df = pd.concat([image_date, image_df], axis=1)
     image_df.set_index('Date/Time')
+    
+    # Merge image dataframe and weather data frame 
+    # It will keep rows that has matching data from both dataFrame
     weather_df = weather_df.merge(image_df, on='Date/Time')
 
     # ################################################################
@@ -93,34 +110,21 @@ def main():
     # ################################################################
 
     #Build models for tide prediction
-
+    # gaussian yielded most accurate result
     gsModel = GaussianNB()
-
-    knn_model = KNeighborsClassifier(n_neighbors=11)
-    
-    # svc model is most accurate for this data
-    svc_model = SVC()
 
     # input data
     X = weather_df[weather_df.columns[2:147459]]
 
-    # target data, tide height is one of 'low', 'medium', 'high'
+    # target data, tide height is either 0 (false) 1 (true)
     y = weather_df['Tmr'].values
     
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
     gsModel.fit(X_train, y_train)
-    knn_model.fit(X_train, y_train)
-    svc_model.fit(X_train, y_train)
 
-
-    print ("Gaussian-")
-    print (gsModel.score(X_test, y_test))
-    print ("KNN-")
-    print (knn_model.score(X_test, y_test))
     print ("\nAccuracy score for tide height prediction:")
-    print (svc_model.score(X_test, y_test))
-
+    print (gsModel.score(X_test, y_test))
 
     # # ####################################################
     # # ############## Sample input  #######################
@@ -137,16 +141,10 @@ def main():
 
     X_pre = test_df[test_df.columns[0:147456]]
 
-    #print ("\nWeather Forecast prediction from the sample input:")
-    print ("gau")
+    print ("\nWeather Forecast prediction from the sample input:")
     predictions = gsModel.predict(X_pre)
     print (predictions)
-    print ("knn")
-    predictions = knn_model.predict(X_pre)
-    print (predictions)
-    print('svc')
-    predictions = svc_model.predict(X_pre)
-    print (predictions)
+
 
 
 if __name__=='__main__':
