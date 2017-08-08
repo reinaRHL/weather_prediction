@@ -17,6 +17,13 @@ import os
 from os import getcwd
 from os.path import join, abspath
 import csv
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import FunctionTransformer, StandardScaler, MultiLabelBinarizer
+from sklearn.svm import SVC
+from sklearn.multiclass import OneVsOneClassifier, OneVsRestClassifier
+from sklearn.svm import LinearSVC
 
 def simplify_cat(weather):
     #simplify (clean) category
@@ -60,7 +67,8 @@ def main():
         list_.append(df)
     frame = pd.concat(list_, ignore_index=True)
     
-    path ='/katkam-scaled'
+    # idea from https://stackoverflow.com/questions/39165992/converting-appended-images-list-in-pandas-dataframe
+    path ='/katkam-scaled_700'
     allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
     list1_ = []
     list2_ = []
@@ -71,7 +79,7 @@ def main():
         list2_.append(misc.imread(file_).reshape(-1))
     print ("read image file...")
 
-    #image_date contains 'Date/Time' info
+    # image_date contains 'Date/Time' info
     image_date= pd.DataFrame(list1_, columns=['Date/Time'])
     image_date['Date/Time'] = image_date['Date/Time'].apply(getDate)
 
@@ -106,7 +114,50 @@ def main():
     # Merge image dataframe and weather data frame 
     # It will keep rows that has matching data from both dataFrame    
     weather_df = weather_df.merge(image_df, on='Date/Time')
-    print (weather_df)
+    weather_df['simple cat'] = weather_df['simple cat'].str.split(',')
+
+
+    ################################################################
+    ############## Training and Testing Data   #####################
+    ################################################################
+
+    # Build a model
+    # Multi label classification: 
+    # Part of code is from https://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
+    print("model start")
+    X = weather_df[weather_df.columns[6:147462]]
+    y = weather_df['simple cat'].values
+    mlb = MultiLabelBinarizer()
+    Y = mlb.fit_transform(y)
+    X_train, X_test, y_train, y_test = train_test_split(X, Y)
+    model = OneVsRestClassifier(LinearSVC(random_state=0))
+
+    model.fit(X_train, y_train)
+    print (model.score(X_test, y_test))
+
+    print ("prediction start")
+
+
+    ####################################################
+    ############## Verify Data   #######################
+    ####################################################
+
+    # Predict weather using some test input
+    path ='/testing_img'
+    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    list3_ = []
+    for file_ in allFiles:
+        list3_.append(misc.imread(file_).reshape(-1))
+
+    test_df = pd.DataFrame.from_records(list3_)
+
+    X_pre = test_df[test_df.columns[0:147456]]
+
+    # Part of code is from https://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
+    predictions = model.predict(X_pre)
+    origin_label = mlb.inverse_transform(predictions)
+    print (origin_label)
+    pd.Series(origin_label).to_csv("labels.csv", index=False)
 
     end = timer()
     print (end-start)
