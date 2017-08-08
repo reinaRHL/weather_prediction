@@ -86,7 +86,6 @@ def main():
     list1_ = []
     list2_ = []
     image_date = pd.DataFrame()
-    print ("Reading image file...")
     for file_ in allFiles:
         list1_.append(file_)
         list2_.append(misc.imread(file_).reshape(-1))
@@ -123,7 +122,7 @@ def main():
 
     gsModel.fit(X_train, y_train)
 
-    print ("\nAccuracy score for tide height prediction:")
+    print ("\nAccuracy score for weather prediction:")
     print (gsModel.score(X_test, y_test))
 
     # # ####################################################
