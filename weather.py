@@ -53,8 +53,8 @@ def main():
 
     # Reading multiple files in the same folder. 
     # Code is from https://stackoverflow.com/questions/39568925/python-read-files-from-directory-and-concatenate-that
-    path ='/yvr-weather'
-    allFiles = glob.glob(abspath(getcwd())+ path + "/*.csv")
+    path = sys.argv[1]
+    allFiles = glob.glob(abspath(getcwd())+ "/" + path + "/*.csv")
     frame = pd.DataFrame()
     list_ = []
     for file_ in allFiles:
@@ -63,8 +63,8 @@ def main():
     frame = pd.concat(list_, ignore_index=True)
     
     # idea from https://stackoverflow.com/questions/39165992/converting-appended-images-list-in-pandas-dataframe
-    path ='/katkam-scaled_700'
-    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    path =sys.argv[2]
+    allFiles = glob.glob(abspath(getcwd())+  "/" + path + "/*.jpg")
     list1_ = []
     list2_ = []
     image_date = pd.DataFrame()
@@ -125,6 +125,7 @@ def main():
     model = OneVsRestClassifier(LinearSVC(random_state=0))
 
     model.fit(X_train, y_train)
+    print ("\nAccuracy score for weather label prediction:")
     print (model.score(X_test, y_test))
 
 
@@ -133,8 +134,8 @@ def main():
     ####################################################
 
     # Predict weather using some test input
-    path ='/testing_img'
-    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    path = sys.argv[3]
+    allFiles = glob.glob(abspath(getcwd())+  "/" + path + "/*.jpg")
     list3_ = []
     for file_ in allFiles:
         list3_.append(misc.imread(file_).reshape(-1))

@@ -80,7 +80,7 @@ def main():
     ############## READ FILE and Clean Data - tide data and image data #####################
     ########################################################################################
     
-    tide_df = pd.read_csv('tideData.csv')
+    tide_df = pd.read_csv(sys.argv[1])
 
     # Clean the tide height data
     tide_df = pd.DataFrame(tide_df, columns=['TIME_TAG PST (Z+8)', 'ENCODER1'])
@@ -99,8 +99,8 @@ def main():
 
     # read image file from the folder
     # idea from https://stackoverflow.com/questions/39165992/converting-appended-images-list-in-pandas-dataframe
-    path ='/katkam-scaled_700'
-    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    path =sys.argv[2]
+    allFiles = glob.glob(abspath(getcwd())+  "/" + path + "/*.jpg")
     list1_ = []
     list2_ = []
     image_date = pd.DataFrame()
@@ -191,8 +191,8 @@ def main():
     # ####################################################
 
     # Predict tide and time using some test input
-    path ='/testing_img'
-    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    path = sys.argv[3]
+    allFiles = glob.glob(abspath(getcwd())+  "/" + path + "/*.jpg")
     list3_ = []
     for file_ in allFiles:
         list3_.append(misc.imread(file_).reshape(-1))
