@@ -27,6 +27,8 @@ from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 
+
+
 def classify(data, avg, std):
     if data < avg - std:
         return 'low'
@@ -34,6 +36,21 @@ def classify(data, avg, std):
         return 'medium'
     else:
         return 'high'
+
+def classify_time(time):
+    morning = [4,5,6,7,8,9,10,11]
+    afternoon = [12,13,14,15,16,17]
+    evening = [18,19,20,21]
+    night = [22,23,0, 1,2,3]
+
+    if time in morning:
+        return 'morning'
+    elif time in afternoon:
+        return 'afternoon'
+    elif time in evening:
+        return 'evening'
+    else:
+        return 'night'
 
 # Extract date (YYYYmmDD-HH) from the filepath
 def getDate(filepath):
@@ -83,6 +100,7 @@ def main():
     tide_df_new["month"]= tide_df_new['Date/Time'].apply(month)
     tide_df_new["date"]= tide_df_new['Date/Time'].apply(date)
     tide_df_new["time"]= tide_df_new['Date/Time'].apply(time)
+    tide_df_new['time'] = tide_df_new['time'].astype(int).apply(classify_time)
 
     # idea from https://stackoverflow.com/questions/39165992/converting-appended-images-list-in-pandas-dataframe
     path ='/katkam-scaled_700'
@@ -123,58 +141,79 @@ def main():
     # ############## Training and Testing Data   #####################
     # ################################################################
 
-    # Build a model
+    #Build models for tide prediction
     print("model start")
 
-    gsModel = make_pipeline(StandardScaler(), GaussianNB())
+    gsModel_tide = make_pipeline(StandardScaler(), GaussianNB())
 
-    knn_model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=11))
+    knn_model_tide = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=11))
     
-    svc_model = make_pipeline(StandardScaler(), SVC())
+    svc_model_tide = make_pipeline(StandardScaler(), SVC())
 
     X = tide_df_new[tide_df_new.columns[6:147463]]
     y = tide_df_new['Tide'].values
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
-    gsModel.fit(X_train, y_train)
-    knn_model.fit(X_train, y_train)
-    svc_model.fit(X_train, y_train)
+    gsModel_tide.fit(X_train, y_train)
+    knn_model_tide.fit(X_train, y_train)
+    svc_model_tide.fit(X_train, y_train)
 
-    print ("Gaussian")
-    print (gsModel.score(X_test, y_test))
-    print ("KNN")
-    print (knn_model.score(X_test, y_test))
-    print ("SVC")
-    print (svc_model.score(X_test, y_test))
-
-    print ("prediction start")
-
-
-    ####################################################
-    ############## Verify Data   #######################
-    ####################################################
-
-    # Predict weather using some test input
-    path ='/testing_img'
-    allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
-    list3_ = []
-    for file_ in allFiles:
-        list3_.append(misc.imread(file_).reshape(-1))
-
-    test_df = pd.DataFrame.from_records(list3_)
-
-    X_pre = test_df[test_df.columns[0:147456]]
+    print ("Accuracy score for tide height prediction:")
+    print ("Gaussian-")
+    print (gsModel_tide.score(X_test, y_test))
+    print ("KNN-")
+    print (knn_model_tide.score(X_test, y_test))
+    print ("SVC-")
+    print (svc_model_tide.score(X_test, y_test))
 
 
-    predictions = gsModel.predict(X_pre)
-    print ("gspredict")
-    print (predictions)
-    predictions = knn_model.predict(X_pre)
-    print ("knn")
-    print (predictions)
-    predictions = svc_model.predict(X_pre)
-    print ("svc")
-    print (predictions)
+    # Build a model for time
+    gsModel_time = GaussianNB()
+    knn_model_time = KNeighborsClassifier(n_neighbors=11)
+    svc_model_time = SVC()
+
+    X = tide_df_new[tide_df_new.columns[6:147463]]
+    y = tide_df_new['time'].values
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+    gsModel_time.fit(X_train, y_train)
+    knn_model_time.fit(X_train, y_train)
+    svc_model_time.fit(X_train, y_train)
+
+    print ("Accuracy score for time prediction:")
+    print ("Gaussian-")
+    print (gsModel_time.score(X_test, y_test))
+    print ("KNN-")
+    print (knn_model_time.score(X_test, y_test))
+    print ("SVC-")
+    print (svc_model_time.score(X_test, y_test))
+
+
+    # ####################################################
+    # ############## Verify Data   #######################
+    # ####################################################
+
+    # # Predict weather using some test input
+    # path ='/testing_img'
+    # allFiles = glob.glob(abspath(getcwd())+ path + "/*.jpg")
+    # list3_ = []
+    # for file_ in allFiles:
+    #     list3_.append(misc.imread(file_).reshape(-1))
+
+    # test_df = pd.DataFrame.from_records(list3_)
+
+    # X_pre = test_df[test_df.columns[0:147456]]
+
+
+    # predictions = gsModel.predict(X_pre)
+    # print ("gspredict")
+    # print (predictions)
+    # predictions = knn_model.predict(X_pre)
+    # print ("knn")
+    # print (predictions)
+    # predictions = svc_model.predict(X_pre)
+    # print ("svc")
+    # print (predictions)
     end = timer()
     print (end-start)
 
