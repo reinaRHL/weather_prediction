@@ -1,5 +1,10 @@
 <b> Webcams, Predictions, and Weather Project </b>
 
+Libraries
+        
+        Python3 Standard libraries, Numpy, Pandas, scipy, sklearn
+
+<b>
 Project has 3 parts.
 
 Run each program using these command lines:
