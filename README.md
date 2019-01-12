@@ -1,13 +1,15 @@
 <b> Webcams, Predictions, and Weather Project </b>
 
+This project will ask 3 questions and there are 3 programs to answer each question:
+1. Can we use image to describe the current weather condition?
+2. Can we use image to predict height of the ride and the time of day?
+3. Can we use image to predict rain/snow next day?
+
 Libraries
         
         Python3 Standard libraries, Numpy, Pandas, scipy, sklearn
 
 <b>
-Project has 3 parts.
-
-Run each program using these command lines:
 
 
 1. Weather label prediction program
